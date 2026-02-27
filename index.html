@@ -1105,7 +1105,7 @@
                   </div>
                 </td>
 
-                <template>
+                <template v-if="true">
                   <template v-for="(group, gIdx) in getEventGroups(row.period)" :key="'g'+gIdx">
                     <td v-if="group.isEvent"
                         :colspan="group.classes.length"
