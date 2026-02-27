@@ -1062,8 +1062,8 @@
         </div>
       </section>
 
-      <section class="flex-1"
-               :class="(isAdminMode && !isKioskMode) ? 'scroll-area p-4' : (isKioskMode ? 'overflow-hidden p-2' : 'overflow-hidden p-4')">
+      <section class="flex-1 min-h-0"
+               :class="(isAdminMode && !isKioskMode) ? 'scroll-area p-4' : (isKioskMode ? 'overflow-hidden p-2 h-full' : 'overflow-hidden p-4 h-full')">
 
         <div class="w-full border-2 border-gray-300 rounded-lg overflow-hidden bg-white"
              :class="(isAdminMode && !isKioskMode) ? '' : 'h-full'">
