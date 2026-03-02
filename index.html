@@ -170,6 +170,37 @@
       overflow-y: auto;
     }
 
+    /* 비밀번호 모달 */
+    .password-modal-content {
+      background: white;
+      border-radius: 1rem;
+      padding: 2.5rem;
+      max-width: 360px;
+      width: 90%;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+      text-align: center;
+    }
+
+    .password-input {
+      width: 100%;
+      border: 2px solid #e5e7eb;
+      border-radius: 0.5rem;
+      padding: 0.75rem 1rem;
+      font-size: 1.5rem;
+      text-align: center;
+      letter-spacing: 0.3rem;
+      outline: none;
+      transition: border-color 0.2s;
+      box-sizing: border-box;
+    }
+    .password-input:focus {
+      border-color: #6366f1;
+    }
+    .password-input.error {
+      border-color: #ef4444;
+      animation: shake 0.4s;
+    }
+
     .firebase-warning {
       position: fixed;
       top: 20px;
@@ -447,6 +478,43 @@
       <span>실시간 업데이트</span>
     </div>
 
+    <!-- 비밀번호 입력 모달 -->
+    <div v-if="showPasswordModal" class="modal-overlay">
+      <div class="password-modal-content">
+        <div class="mb-5">
+          <div class="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-3">
+            <i class="fa-solid fa-lock text-3xl text-indigo-600"></i>
+          </div>
+          <h2 class="text-2xl font-extrabold text-gray-900">관리자 인증</h2>
+          <p class="text-gray-500 text-sm mt-1">비밀번호를 입력하세요</p>
+        </div>
+        <input
+          ref="passwordInputRef"
+          v-model="passwordInput"
+          type="password"
+          maxlength="10"
+          class="password-input"
+          :class="{ error: passwordError }"
+          placeholder="••••"
+          @keydown.enter="confirmPassword"
+          @keydown.esc="cancelPassword"
+        />
+        <p v-if="passwordError" class="text-red-500 text-sm mt-2 font-semibold">
+          <i class="fa-solid fa-circle-exclamation"></i> 비밀번호가 올바르지 않습니다
+        </p>
+        <div class="flex gap-3 mt-5">
+          <button @click="confirmPassword"
+                  class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-lg transition">
+            <i class="fa-solid fa-unlock"></i> 확인
+          </button>
+          <button @click="cancelPassword"
+                  class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-3 rounded-lg transition">
+            취소
+          </button>
+        </div>
+      </div>
+    </div>
+
     <div v-if="showManual" class="manual-overlay" @click.self="showManual = false">
       <div class="manual-sidebar">
         <div class="manual-header">
@@ -508,7 +576,7 @@
           <h2>3. 관리자 기능</h2>
           <h3>3.1 관리자 모드 진입</h3>
           <div class="manual-section">
-            <p>우측 상단 <strong>[관리자 모드]</strong> 버튼 클릭</p>
+            <p>우측 상단 <strong>[관리자 모드]</strong> 버튼 클릭 → 비밀번호 입력</p>
             <p>→ 관리자 도구 패널이 나타납니다</p>
           </div>
 
@@ -724,9 +792,10 @@
 
           <h2>10. 버전 정보</h2>
           <div class="manual-tip">
-            <p><strong>현재 버전:</strong> v3.0.2.1 (2026-02-27)</p>
+            <p><strong>현재 버전:</strong> v3.0.2.2 (2026-03-02)</p>
             <p><strong>변경사항:</strong></p>
             <ul>
+              <li>✅ 관리자 모드 비밀번호 인증 추가</li>
               <li>✅ 목요일 7교시 창의적체험활동 고정 기능 제거</li>
               <li>✅ 실시간 업데이트</li>
               <li>✅ 슬라이드 전체화면 모드</li>
@@ -993,6 +1062,7 @@
               <button @click="toggleAdmin"
                       class="px-4 py-2 rounded font-bold"
                       :class="isAdminMode ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-900'">
+                <i class="fa-solid" :class="isAdminMode ? 'fa-lock-open' : 'fa-lock'"></i>
                 {{ isAdminMode ? '관리자 종료' : '관리자 모드' }}
               </button>
               <div class="flex items-center gap-2 bg-gray-100 px-3 py-2 rounded">
@@ -1012,7 +1082,7 @@
       <section v-if="isAdminMode && !isKioskMode"
                class="shrink-0 border-b bg-gray-50 px-4 py-3">
         <div class="text-xs text-gray-500 mb-2 text-right">
-          It was produced by Choi Kwang-chul, vice principal, with the help of AI. "Student schedule guide ver3.0.2.1"
+          It was produced by Choi Kwang-chul, vice principal, with the help of AI. "Student schedule guide ver3.0.2.2"
         </div>
         <div class="flex flex-wrap items-center gap-3">
           <div class="font-bold text-gray-700 mr-2">
@@ -1189,6 +1259,8 @@
   const auth = getAuth(fbApp);
   const provider = new GoogleAuthProvider();
 
+  const ADMIN_PASSWORD = '2376';
+
   const { createApp, ref, computed, onMounted, nextTick, watch, onUnmounted } = Vue;
 
   createApp({
@@ -1202,6 +1274,12 @@
       const showSlides = ref(true);
       const slideFullscreen = ref(false);
       const showManual = ref(false);
+
+      // 비밀번호 관련
+      const showPasswordModal = ref(false);
+      const passwordInput = ref('');
+      const passwordError = ref(false);
+      const passwordInputRef = ref(null);
 
       const schoolName = ref('구례중학교');
       const classCounts = ref({ 1: 2, 2: 2, 3: 2 });
@@ -1280,9 +1358,51 @@
         return user.value.displayName || user.value.email || '사용자';
       });
 
+      // ── 비밀번호 모달 함수들 ──────────────────────────
+      function toggleAdmin() {
+        if (isAdminMode.value) {
+          // 관리자 종료는 비밀번호 없이 바로
+          isAdminMode.value = false;
+        } else {
+          // 관리자 진입 시 비밀번호 확인
+          passwordInput.value = '';
+          passwordError.value = false;
+          showPasswordModal.value = true;
+          nextTick(() => {
+            passwordInputRef.value?.focus();
+          });
+        }
+      }
+
+      function confirmPassword() {
+        if (passwordInput.value === ADMIN_PASSWORD) {
+          showPasswordModal.value = false;
+          passwordInput.value = '';
+          passwordError.value = false;
+          isAdminMode.value = true;
+        } else {
+          passwordError.value = true;
+          passwordInput.value = '';
+          nextTick(() => {
+            passwordInputRef.value?.focus();
+          });
+          // 1.5초 후 에러 표시 초기화
+          setTimeout(() => { passwordError.value = false; }, 1500);
+        }
+      }
+
+      function cancelPassword() {
+        showPasswordModal.value = false;
+        passwordInput.value = '';
+        passwordError.value = false;
+      }
+      // ─────────────────────────────────────────────────
+
       function handleEscKey(event) {
         if (event.key === 'Escape') {
-          if (slideFullscreen.value) {
+          if (showPasswordModal.value) {
+            cancelPassword();
+          } else if (slideFullscreen.value) {
             slideFullscreen.value = false;
           } else if (showManual.value) {
             showManual.value = false;
@@ -1863,8 +1983,6 @@
           isAdminMode.value = false;
         }
       }
-     
-      function toggleAdmin() { isAdminMode.value = !isAdminMode.value; }
 
       async function toggleKiosk() {
         isKioskMode.value = !isKioskMode.value;
@@ -1906,6 +2024,9 @@
         user, userName, isAdminMode, isKioskMode,
         isFirebaseConfigured,
         login, logout, toggleAdmin, toggleKiosk,
+        // 비밀번호 관련
+        showPasswordModal, passwordInput, passwordError, passwordInputRef,
+        confirmPassword, cancelPassword,
         weekdays,
         selectedDay,
         slides, currentSlideIndex,
