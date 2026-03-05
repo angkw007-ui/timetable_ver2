@@ -106,9 +106,6 @@
 
     .scroll-area { overflow: auto; }
 
-    /* ──────────────────────────────────────────────────────
-       [FIX 1] 키오스크 모드: JS로 폰트 크기 자동 조절
-    ────────────────────────────────────────────────────── */
     .kiosk-cell {
       width: 100%;
       height: 100%;
@@ -127,11 +124,10 @@
       font-weight: 900;
       color: #1e3a8a;
       text-align: center;
-      white-space: nowrap;        /* 줄바꿈 금지 */
+      white-space: nowrap;
       overflow: hidden;
       line-height: 1.1;
       flex: 1 1 0;
-      /* JS가 style.fontSize를 직접 세팅 — 여기선 fallback */
       font-size: 1.5rem;
     }
 
@@ -145,7 +141,7 @@
       overflow: hidden;
       line-height: 1.1;
       flex: 0 0 auto;
-      font-size: 0.85rem;        /* 교사명은 고정 */
+      font-size: 0.85rem;
     }
 
     .kiosk-divider {
@@ -155,7 +151,6 @@
       flex-shrink: 0;
     }
 
-    /* login */
     .login-screen {
       position: fixed; inset: 0;
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -228,9 +223,6 @@
       transform: scale(1.05);
     }
 
-    /* ──────────────────────────────────────────────────────
-       [FIX 3] 실시간 업데이트 배지 - 일반 모드 / 뷰어 모드 공통
-    ────────────────────────────────────────────────────── */
     .realtime-badge {
       position: fixed; bottom: 20px; right: 20px;
       background: rgba(16,185,129,0.9); color: white;
@@ -240,17 +232,12 @@
       z-index: 1000; backdrop-filter: blur(10px);
       animation: pulse 2s infinite;
     }
-    .realtime-badge.viewer {
-      background: rgba(99,102,241,0.9);
-    }
+    .realtime-badge.viewer { background: rgba(99,102,241,0.9); }
     @keyframes pulse {
       0%, 100% { opacity: 1; }
       50% { opacity: 0.7; }
     }
 
-    /* ──────────────────────────────────────────────────────
-       [FIX 2] 관리자 입력 실시간 반영 - 플래시 효과
-    ────────────────────────────────────────────────────── */
     .cell-updated {
       animation: cellFlash 0.5s ease-out;
     }
@@ -259,7 +246,6 @@
       100% { background-color: transparent; }
     }
 
-    /* 사용설명서 */
     .manual-overlay {
       position: fixed; inset: 0;
       background: rgba(0,0,0,0.6); z-index: 9999;
@@ -427,7 +413,6 @@
               <tr><td style="background:#FEF3C7;">노란색</td><td>1학년</td></tr>
               <tr><td style="background:#E0F2FE;">하늘색</td><td>2학년</td></tr>
               <tr><td style="background:#FCE7F3;">핑크색</td><td>3학년</td></tr>
-              <tr><td style="background:#FEE2E2;border:2px solid #EF4444;">빨간색 테두리</td><td>기본시간표에서 변경됨</td></tr>
             </tbody>
           </table>
 
@@ -692,7 +677,6 @@
             <i class="fa-solid fa-cog"></i> 시스템 설정
           </button>
 
-          <!-- ── [FIX 2] 미저장 변경사항 알림 ── -->
           <div v-if="hasUnsavedChanges" class="ml-2 flex items-center gap-2 bg-amber-100 border border-amber-400 text-amber-800 px-3 py-2 rounded font-bold text-sm animate-pulse">
             <i class="fa-solid fa-triangle-exclamation"></i>
             미저장 변경사항 있음 — [수업변경 저장] 또는 [학기초 저장] 누르세요
@@ -744,20 +728,22 @@
                 </td>
 
                 <template v-for="(group, gIdx) in getEventGroups(row.period)" :key="'g'+gIdx">
+                  <!-- ✅ 행사 셀: 빨간색 제거, 항상 bg-purple-50 -->
                   <td v-if="group.isEvent"
                       :colspan="group.classes.length"
-                      :class="['border border-gray-300', getEventCellBgClass(row.period, group)]">
+                      class="border border-gray-300 bg-purple-50">
                     <div class="w-full h-full flex items-center justify-center text-center font-extrabold text-purple-900 cell-text"
                          :class="isKioskMode ? 'text-3xl' : 'text-xl'">
                       {{ group.eventName }}
                     </div>
                   </td>
 
+                  <!-- ✅ 일반 수업 셀: 빨간색 override 표시 제거, 학년 색상만 적용 -->
                   <td v-else v-for="cls in group.classes" :key="cls"
                       class="border border-gray-300 p-0"
-                      :class="[colBodyBg(cls), getCellBgClass(row.period, cls)]">
+                      :class="colBodyBg(cls)">
 
-                    <!-- 관리자 편집 모드: 글자 크게 -->
+                    <!-- 관리자 편집 모드 -->
                     <div v-if="isAdminMode && !isKioskMode" class="cell-editor-wrap">
                       <input class="cell-editor-input font-extrabold text-blue-900"
                              style="font-size: clamp(1rem, 2.2vw, 2rem); line-height:1.1;"
@@ -776,7 +762,7 @@
                              placeholder="교사명" />
                     </div>
 
-                    <!-- ── [FIX 1] 키오스크/일반 보기 모드: JS 폰트 자동 크기 조절 ── -->
+                    <!-- 키오스크/일반 보기 모드 -->
                     <div v-else class="kiosk-cell" :data-kiosk="isKioskMode ? '1' : '0'">
                       <div class="kiosk-subject"
                            :style="isKioskMode ? '' : 'font-size:1.1rem;'"
@@ -849,7 +835,6 @@
       const tempSchoolName = ref('');
       const tempClassCounts = ref({ 1: 2, 2: 2, 3: 2 });
 
-      // ── [FIX 2] 미저장 변경 추적 ──
       const hasUnsavedChanges = ref(false);
 
       const classes = computed(() => {
@@ -904,8 +889,6 @@
       const events = ref({});
       const grid = ref({});
 
-      // ── [FIX 2] 외부(Firestore)에서 받은 가장 최근 서버 데이터
-      // 관리자가 편집 중일 때 서버 스냅샷으로 덮어쓰지 않기 위한 플래그
       const isEditing = ref(false);
       let editingTimer = null;
 
@@ -934,7 +917,6 @@
         return t;
       }
 
-      // ── 비밀번호 모달 ──
       function toggleAdmin() {
         if (isAdminMode.value) {
           isAdminMode.value = false;
@@ -1044,20 +1026,6 @@
         return 'bg-pink-50';
       }
 
-      function getCellBgClass(period, cls) {
-        if (isOverrideCell(period, cls)) return 'bg-red-100 ring-2 ring-red-300';
-        return '';
-      }
-
-      function getEventCellBgClass(period, group) {
-        const baseEvt = baseEvents.value[String(period)];
-        const currEvt = events.value[String(period)];
-        if (JSON.stringify(baseEvt) !== JSON.stringify(currEvt)) {
-          return 'bg-red-100 ring-2 ring-red-300';
-        }
-        return 'bg-purple-50';
-      }
-
       function getEventGroups(period) {
         const evt = events.value[String(period)];
         if (!evt) return [{ isEvent: false, classes: classes.value }];
@@ -1131,12 +1099,10 @@
       function parseCell(v) {
         const s = String(v || '');
         if (!s.trim()) return { subject: '', teacher: '' };
-        // \n 기준 분리 (정상 저장 형식)
         if (s.includes('\n')) {
           const parts = s.split('\n');
           return { subject: (parts[0]||'').trim(), teacher: parts.slice(1).join(' ').trim() };
         }
-        // "과목명(교사명)" 패턴 자동 인식 → 분리
         const bracketMatch = s.match(/^(.+?)\(([^)]+)\)\s*$/);
         if (bracketMatch) {
           return { subject: bracketMatch[1].trim(), teacher: bracketMatch[2].trim() };
@@ -1154,8 +1120,6 @@
         grid.value[p][cls] = t ? `${s}\n${t}` : s;
       }
 
-      // ── [FIX 2] 관리자 입력 즉시 반영 ──
-      // input 이벤트마다 grid를 즉시 업데이트 + 편집 중 플래그 설정
       function onSubjectInput(period, cls, value) {
         markEditing();
         const cur = parseCell(grid.value[period]?.[cls] || '');
@@ -1170,7 +1134,6 @@
         hasUnsavedChanges.value = true;
       }
 
-      // 편집 중 플래그: 마지막 입력 후 3초간 서버 스냅샷 무시
       function markEditing() {
         isEditing.value = true;
         if (editingTimer) clearTimeout(editingTimer);
@@ -1193,10 +1156,6 @@
           }
         }
         return merged;
-      }
-
-      function isOverrideCell(p, cls) {
-        return overrides.value[keyOf(p, cls)] !== undefined;
       }
 
       async function handleEnter(period, cls, part) {
@@ -1230,7 +1189,6 @@
         if (el) { el.focus(); el.select?.(); }
       }
 
-      // Google Drive / YouTube 변환
       function convertGoogleDriveUrl(url) {
         try {
           let fileId = '';
@@ -1370,8 +1328,6 @@
         }, duration);
       }
 
-      // ── [FIX 3] loadDayData: 뷰어도 실시간 onSnapshot 구독
-      // 관리자가 편집 중일 때는 서버 데이터로 grid를 덮어쓰지 않음
       function loadDayData() {
         const day = selectedDay.value;
         if (unsubscribeTimetable) unsubscribeTimetable();
@@ -1393,8 +1349,6 @@
             overrides.value = d.overrides || {};
             events.value = d.events || d.baseEvents || {};
 
-            // [FIX 2+3] 관리자가 입력 중이면 서버 덮어쓰기 방지
-            // 뷰어(비관리자)는 항상 서버 데이터를 표시
             if (!isEditing.value) {
               grid.value = mergeBaseAndOverrides(base.value, overrides.value);
             }
@@ -1499,8 +1453,6 @@
         }
       }
 
-      // ── [FIX 1] 과목명 폰트 크기 자동 조절 (키오스크 모드)
-      // 셀 높이·너비를 직접 측정해서 텍스트가 꽉 차도록 font-size를 2진 탐색으로 결정
       function fitSubjectFonts() {
         if (!isKioskMode.value) return;
         const subjects = document.querySelectorAll('[data-subject="1"]');
@@ -1511,21 +1463,18 @@
           const cellW = parent.clientWidth;
           if (!cellH || !cellW) return;
 
-          // 교사명 + 구분선이 차지하는 높이 추정 (~28px)
           const reservedH = 28;
           const availH = Math.max(cellH - reservedH, 20);
-          const availW = cellW - 12; // 좌우 패딩
+          const availW = cellW - 12;
 
           const text = el.textContent.trim();
           if (!text) return;
 
-          // 이진 탐색으로 최적 폰트 크기 결정
           let lo = 10, hi = Math.min(availH * 0.92, availW * 0.85);
-          hi = Math.min(hi, 200); // 최대 200px
+          hi = Math.min(hi, 200);
           let best = lo;
 
           el.style.fontSize = hi + 'px';
-          // 텍스트가 한 줄로 들어가는 최대 크기 탐색
           for (let i = 0; i < 12; i++) {
             const mid = (lo + hi) / 2;
             el.style.fontSize = mid + 'px';
@@ -1540,12 +1489,10 @@
         });
       }
 
-      // grid나 isKioskMode 변경 시 폰트 재계산
       watch([grid, isKioskMode], () => {
         nextTick(() => { fitSubjectFonts(); });
       }, { deep: true });
 
-      // 창 크기 변경 시 재계산
       function onResize() { if (isKioskMode.value) fitSubjectFonts(); }
 
       async function login() {
@@ -1622,10 +1569,7 @@
         getEventGroups,
         grid,
         getSubject, getTeacher,
-        onSubjectInput, onTeacherInput,  // [FIX 2]
-        isOverrideCell,
-        getCellBgClass,
-        getEventCellBgClass,
+        onSubjectInput, onTeacherInput,
         handleEnter,
         loadDayData,
         saveBase,
@@ -1639,7 +1583,7 @@
         formatEventDisplay,
         events,
         showManual,
-        hasUnsavedChanges,  // [FIX 2]
+        hasUnsavedChanges,
       };
     }
   }).mount('#app');
