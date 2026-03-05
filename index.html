@@ -141,7 +141,7 @@
       overflow: hidden;
       line-height: 1.1;
       flex: 0 0 auto;
-      font-size: 1.05rem;
+      font-size: 1.3rem;
     }
 
     .kiosk-divider {
@@ -755,7 +755,7 @@
                              placeholder="과목명" />
                       <div class="cell-divider"></div>
                       <input class="cell-editor-input font-semibold text-gray-700"
-                             style="font-size: clamp(0.75rem, 1.1vw, 1rem);"
+                             style="font-size: 1.3rem;"
                              :data-period="row.period" :data-class="cls" data-part="teacher"
                              :value="getTeacher(grid[row.period] && grid[row.period][cls])"
                              @input="(e) => onTeacherInput(row.period, cls, e.target.value)"
@@ -766,7 +766,7 @@
                     <!-- 키오스크/일반 보기 모드 -->
                     <div v-else class="kiosk-cell" :data-kiosk="isKioskMode ? '1' : '0'">
                       <div class="kiosk-subject"
-                           :style="isKioskMode ? '' : 'font-size:1.1rem;'"
+                           :style="isKioskMode ? '' : 'font-size: clamp(1rem, 2.2vw, 2rem);'"
                            :data-subject="isKioskMode ? '1' : '0'">
                         {{ getSubject(grid[row.period] && grid[row.period][cls]) }}
                       </div>
