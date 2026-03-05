@@ -413,6 +413,7 @@
               <tr><td style="background:#FEF3C7;">노란색</td><td>1학년</td></tr>
               <tr><td style="background:#E0F2FE;">하늘색</td><td>2학년</td></tr>
               <tr><td style="background:#FCE7F3;">핑크색</td><td>3학년</td></tr>
+              <tr><td style="background:#FEE2E2;border:2px solid #EF4444;">빨간색 테두리</td><td>기본시간표에서 변경됨</td></tr>
             </tbody>
           </table>
 
@@ -741,7 +742,7 @@
                   <!-- ✅ 일반 수업 셀: 빨간색 override 표시 제거, 학년 색상만 적용 -->
                   <td v-else v-for="cls in group.classes" :key="cls"
                       class="border border-gray-300 p-0"
-                      :class="colBodyBg(cls)">
+                      :class="[colBodyBg(cls), getCellBgClass(row.period, cls)]">
 
                     <!-- 관리자 편집 모드 -->
                     <div v-if="isAdminMode && !isKioskMode" class="cell-editor-wrap">
@@ -1024,6 +1025,16 @@
         if (g === 1) return 'bg-yellow-50';
         if (g === 2) return 'bg-sky-50';
         return 'bg-pink-50';
+      }
+
+      // override된 셀(기본시간표에서 변경된 셀)에 연한 빨간색 배경 표시
+      function getCellBgClass(period, cls) {
+        if (isOverrideCell(period, cls)) return 'bg-red-100 ring-2 ring-red-300';
+        return '';
+      }
+
+      function isOverrideCell(p, cls) {
+        return overrides.value[keyOf(p, cls)] !== undefined;
       }
 
       function getEventGroups(period) {
@@ -1564,7 +1575,7 @@
         showSettingsModal, tempSchoolName, tempClassCounts,
         openSettings, saveSettings,
         classes, classLabel,
-        colHeaderBg, colBodyBg,
+        colHeaderBg, colBodyBg, getCellBgClass,
         tableRows, rowStyle,
         getEventGroups,
         grid,
