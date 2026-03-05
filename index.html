@@ -141,7 +141,7 @@
       overflow: hidden;
       line-height: 1.1;
       flex: 0 0 auto;
-      font-size: 0.85rem;
+      font-size: 1.05rem;
     }
 
     .kiosk-divider {
@@ -1520,6 +1520,11 @@
 
       async function toggleKiosk() {
         isKioskMode.value = !isKioskMode.value;
+        // Firebase에 키오스크 상태 저장 → 공유 화면도 자동 전환
+        try {
+          await setDoc(configRef, { kioskMode: isKioskMode.value }, { merge: true });
+        } catch(e) {}
+        // 관리자 본인 화면 전체화면 처리
         try {
           if (isKioskMode.value) {
             if (!document.fullscreenElement) await document.documentElement.requestFullscreen();
@@ -1537,12 +1542,24 @@
           user.value = u;
           if (!u) { isAdminMode.value = false; return; }
           try {
-            onSnapshot(configRef, (snap) => {
+            onSnapshot(configRef, async (snap) => {
               if (snap.exists()) {
                 const d = snap.data();
                 if (d.schoolName) schoolName.value = d.schoolName;
                 if (d.classCounts) classCounts.value = d.classCounts;
                 if (Array.isArray(d.slides)) slides.value = d.slides;
+                // 키오스크 모드 실시간 동기화 (관리자 제외 — 관리자는 직접 토글)
+                if (!isAdminMode.value && d.kioskMode !== undefined && d.kioskMode !== isKioskMode.value) {
+                  isKioskMode.value = d.kioskMode;
+                  try {
+                    if (d.kioskMode) {
+                      if (!document.fullscreenElement) await document.documentElement.requestFullscreen();
+                    } else {
+                      if (document.fullscreenElement) await document.exitFullscreen();
+                    }
+                  } catch(e) {}
+                  nextTick(() => { fitSubjectFonts(); });
+                }
               }
             });
           } catch(error) {}
